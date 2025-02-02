@@ -15,12 +15,14 @@ import java.security.KeyPair;
 @EnableConfigurationProperties(KeyProperties.class)
 public class AuthConfig {
 
+    // 读取配置文件
     @Bean
     @ConfigurationProperties(prefix = "encrypt")
     public KeyProperties keyProperties(){
         return new KeyProperties();
     }
 
+    // 读取秘钥对
     @Bean
     public KeyPair keyPair(KeyProperties keyProperties){
         // 获取秘钥工厂

@@ -21,7 +21,7 @@ public class CategoryCache {
 
     public Map<Long, CategoryBasicDTO> getCategoryMap() {
         return categoryCaches.get("CATEGORY", key -> {
-            // 1.从CategoryClient查询
+            // 1.没找到时的回调函数
             List<CategoryBasicDTO> list = categoryClient.getAllOfOneLevel();
             if (list == null || list.isEmpty()) {
                 return CollUtils.emptyMap();
@@ -31,6 +31,11 @@ public class CategoryCache {
         });
     }
 
+    /**
+     * 获取分类名称
+     * @param ids
+     * @return
+     */
     public String getCategoryNames(List<Long> ids) {
         if (ids == null || ids.size() == 0) {
             return "";

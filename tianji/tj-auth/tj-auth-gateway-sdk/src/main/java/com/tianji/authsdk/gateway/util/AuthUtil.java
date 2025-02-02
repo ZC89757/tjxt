@@ -56,11 +56,15 @@ public class AuthUtil {
         }
         JWT jwt = null;
         try {
+            //填充JWT获取签名器可以根据指定的算法生成和验证 JWT 的签名部分 签名器自己生产
             jwt = JWT.of(token).setSigner(jwtSignerHolder.getJwtSigner());
         } catch (Exception e) {
             return R.error(INVALID_TOKEN_CODE, INVALID_TOKEN);
         }
         // 2.校验jwt是否有效
+        //使用 JWTSigner 中配置的签名算法和公钥
+        // 对令牌的签名部分进行校验。如果签名无效
+        // 说明令牌可能被篡改。
         if (!jwt.verify()) {
             // 验证失败，返回空
             return R.error(INVALID_TOKEN_CODE, INVALID_TOKEN);

@@ -27,8 +27,9 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class JwtSignerHolder {
 
+    //密钥
     private volatile JWTSigner jwtSigner;
-
+    //服务发现客户端
     private DiscoveryClient discoveryClient;
 
     public JwtSignerHolder(DiscoveryClient discoveryClient) {
@@ -41,12 +42,14 @@ public class JwtSignerHolder {
             10,
             TimeUnit.SECONDS,
             new ArrayBlockingQueue<>(1),
+            // 自定义线程工厂
             r -> new Thread(r, "AuthFetchJwkThread")
     );
 
+    // 在 Spring 初始化 bean 后执行该方法
     @PostConstruct
     public void init(){
-        // 尝试获取jwk秘钥
+        // 异步尝试获取jwk秘钥
         ses.submit(new MarkedRunnable(new JwkTask(discoveryClient)));
     }
 
@@ -61,7 +64,9 @@ public class JwtSignerHolder {
             e.printStackTrace();
         }
     }
+    // 加载jwk秘钥
     class JwkTask implements Runnable{
+        // 服务发现客户端
         private final DiscoveryClient discoveryClient;
 
         public JwkTask(DiscoveryClient discoveryClient) {
@@ -76,10 +81,12 @@ public class JwtSignerHolder {
                     List<ServiceInstance> instances = discoveryClient.getInstances("auth-service");
                     if(CollUtils.isEmpty(instances)){
                         log.error("加载auth服务地址失败，原因：数据为空");
+                        //等待auth模块加载完成
                         sleep(10000);
                         continue;
                     }
                     ServiceInstance instance = instances.get(0);
+                    // 拼接jwk地址
                     String jwkUri = String.format("http://%s:%d/jwks", instance.getHost(), instance.getPort());
                     log.info("加载auth服务地址成功，{}", jwkUri);
 
@@ -91,11 +98,12 @@ public class JwtSignerHolder {
                         sleep(10000);
                         continue;
                     }
-                    // 解析
+                    // jwk生成公钥
                     PublicKey publicKey = KeyUtil.generatePublicKey(
                             AsymmetricAlgorithm.RSA_ECB_PKCS1.getValue(),
                             SecureUtil.decode(result)
                     );
+                    //(签名算法，公钥)
                     jwtSigner = JWTSignerUtil.createSigner(JwtConstants.JWT_ALGORITHM, publicKey);
                     log.info("加载jwk秘钥成功！");
                 } catch (Exception e) {

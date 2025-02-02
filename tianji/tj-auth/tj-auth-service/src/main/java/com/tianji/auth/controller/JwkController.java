@@ -12,10 +12,19 @@ import java.security.KeyPair;
 @RestController
 @RequestMapping("jwks")
 @ApiIgnore
+/**
+ * jwk接口 远程调用获得jwk
+ */
 public class JwkController {
 
     private final KeyPair keyPair;
 
+    /**
+     *     private PrivateKey privateKey;
+     *     private PublicKey publicKey;
+     *     公钥和私钥
+     * @param keyPair
+     */
     @Autowired
     public JwkController(KeyPair keyPair) {
         this.keyPair = keyPair;
